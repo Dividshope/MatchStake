@@ -1,8 +1,13 @@
 export default function Home() {
   return (
-    <main style={{ padding: 20 }}>
-      <h1>Match Stake</h1>
-      <p>App Router is working ✅</p>
+    <main style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "24px"
+    }}>
+      <a href="/login">Go to Login</a>
     </main>
-  )
+  );
 }
