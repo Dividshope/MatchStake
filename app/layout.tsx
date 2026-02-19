@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "MatchStake",
-  description: "Competitive skill-based matches",
+  description: "Skill-based matches. Real stakes.",
 };
 
 export default function RootLayout({
@@ -16,3 +16,4 @@ export default function RootLayout({
     </html>
   );
 }
+
