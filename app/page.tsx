@@ -1,13 +1,13 @@
-export default function Home() {
+export default function HomePage() {
   return (
-    <main style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
+    <main style={{ 
+      minHeight: "100vh", 
+      display: "flex", 
+      alignItems: "center", 
       justifyContent: "center",
       fontSize: "24px"
     }}>
-      <a href="/login">Go to Login</a>
+      MatchStake is live 🚀
     </main>
   );
 }
