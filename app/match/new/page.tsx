@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
+const BASE_WAGER = 10; // MVP default
+const MAX_MULTIPLIER = 15;
+const MAX_STAKE = BASE_WAGER * MAX_MULTIPLIER;
 
 export default function NewMatchPage() {
   const [stake, setStake] = useState("");
@@ -18,26 +21,9 @@ export default function NewMatchPage() {
     });
   }, []);
 
-  const createMatch = async () => {
-    if (!stake || !userId) return;
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("matches")
-      .insert({
-        creator_id: userId,
-        stake_amount: Number(stake),
-        status: "open",
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      window.location.href = `/match/${data.id}`;
-    }
-
-    setLoading(false);
-  };
+  const BASE_WAGER = 10; // MVP default
+const MAX_MULTIPLIER = 15;
+const MAX_STAKE = BASE_WAGER * MAX_MULTIPLIER;
 
   return (
     <main style={{ padding: 24 }}>
@@ -46,6 +32,9 @@ export default function NewMatchPage() {
       <label>
         Stake Amount ($)
         <input
+          <p style={{ fontSize: "14px", color: "#666" }}>
+  Max stake: ${MAX_STAKE} (15× limit)
+</p>
           type="number"
           min="1"
           value={stake}
