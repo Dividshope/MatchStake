@@ -14,6 +14,8 @@ const TIER_BASE: Record<string, number> = {
 
 const MULTIPLIER = 15;
 export default function NewMatchPage() {
+  const [dailyWagered, setDailyWagered] = useState(0);
+const [lastWagerDate, setLastWagerDate] = useState<string | null>(null);
   const [stake, setStake] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
