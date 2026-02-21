@@ -31,18 +31,18 @@ const [lastWagerDate, setLastWagerDate] = useState<string | null>(null);
 
     setUserId(data.user.id);
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("membership_tier, daily_wagered, last_wager_date")
-      .eq("id", data.user.id)
-      .single();
+  const { data: profile } = await supabase
+  .from("profiles")
+  .select("membership_tier, daily_wagered, last_wager_date")
+  .eq("id", data.user.id)
+  .single();
 
-    if (profile) {
-      setMembership(profile.membership_tier);
-      setDailyWagered(profile.daily_wagered || 0);
-      setLastWagerDate(profile.last_wager_date);
-    }
-  };
+if (profile) {
+  setMembership(profile.membership_tier);
+  setDailyWagered(profile.daily_wagered || 0);
+  setLastWagerDate(profile.last_wager_date);
+}
+  
 
   loadUser();
 }, []);
