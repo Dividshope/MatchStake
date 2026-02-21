@@ -23,7 +23,7 @@ export default function NewMatchPage() {
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
-
+ 
       if (!data.user) {
         window.location.href = "/login";
         return;
