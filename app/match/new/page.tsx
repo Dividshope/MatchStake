@@ -21,14 +21,31 @@ const [lastWagerDate, setLastWagerDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        window.location.href = "/login";
-      } else {
-        setUserId(data.user.id);
-      }
-    });
-  }, []);
+  const loadUser = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    setUserId(data.user.id);
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("membership_tier, daily_wagered, last_wager_date")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profile) {
+      setMembership(profile.membership_tier);
+      setDailyWagered(profile.daily_wagered || 0);
+      setLastWagerDate(profile.last_wager_date);
+    }
+  };
+
+  loadUser();
+}, []);
 
   const BASE_WAGER = 10; // MVP default
 const MAX_MULTIPLIER = 15;
