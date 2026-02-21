@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-const BASE_WAGER = 10; // MVP default
-const MAX_MULTIPLIER = 15;
-const MAX_STAKE = BASE_WAGER * MAX_MULTIPLIER;
+
 const TIER_BASE: Record<string, number> = {
   free: 0,
   starter: 10,
@@ -13,79 +11,131 @@ const TIER_BASE: Record<string, number> = {
 };
 
 const MULTIPLIER = 15;
+
 export default function NewMatchPage() {
-  const [dailyWagered, setDailyWagered] = useState(0);
-const [lastWagerDate, setLastWagerDate] = useState<string | null>(null);
-  const [stake, setStake] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [membership, setMembership] = useState("free");
+  const [stake, setStake] = useState("");
+  const [dailyWagered, setDailyWagered] = useState(0);
+  const [lastWagerDate, setLastWagerDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  const loadUser = async () => {
-    const { data } = await supabase.auth.getUser();
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
 
-    if (!data.user) {
-      window.location.href = "/login";
+      if (!data.user) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setUserId(data.user.id);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("membership_tier, daily_wagered, last_wager_date")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profile) {
+        setMembership(profile.membership_tier);
+        setDailyWagered(profile.daily_wagered || 0);
+        setLastWagerDate(profile.last_wager_date);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  const createMatch = async () => {
+    if (!userId) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    let currentDaily = dailyWagered;
+
+    if (lastWagerDate !== today) {
+      currentDaily = 0;
+
+      await supabase
+        .from("profiles")
+        .update({
+          daily_wagered: 0,
+          last_wager_date: today,
+        })
+        .eq("id", userId);
+    }
+
+    const base = TIER_BASE[membership];
+    if (!base) {
+      alert("Upgrade membership to wager.");
       return;
     }
 
-    setUserId(data.user.id);
+    const maxDaily = base * MULTIPLIER;
+    const stakeValue = Number(stake);
 
-  const { data: profile } = await supabase
-  .from("profiles")
-  .select("membership_tier, daily_wagered, last_wager_date")
-  .eq("id", data.user.id)
-  .single();
+    if (!stakeValue || stakeValue <= 0) {
+      alert("Enter a valid stake");
+      return;
+    }
 
-if (profile) {
-  setMembership(profile.membership_tier);
-  setDailyWagered(profile.daily_wagered || 0);
-  setLastWagerDate(profile.last_wager_date);
-}
-  
+    if (currentDaily + stakeValue > maxDaily) {
+      alert(
+        `Daily limit exceeded. Remaining: $${maxDaily - currentDaily}`
+      );
+      return;
+    }
 
-  loadUser();
-}, []);
+    setLoading(true);
 
-  const BASE_WAGER = 10; // MVP default
-const MAX_MULTIPLIER = 15;
-const MAX_STAKE = BASE_WAGER * MAX_MULTIPLIER;
+    const { data, error } = await supabase
+      .from("matches")
+      .insert({
+        creator_id: userId,
+        stake_amount: stakeValue,
+        status: "open",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+
+    await supabase
+      .from("profiles")
+      .update({
+        daily_wagered: currentDaily + stakeValue,
+        last_wager_date: today,
+      })
+      .eq("id", userId);
+
+    window.location.href = `/match/${data.id}`;
+  };
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Create Chess Match</h1>
+    <main style={{ padding: 40 }}>
+      <h1>Create Match</h1>
 
-      <label>
-        Stake Amount ($)
-        <input
-          <p style={{ fontSize: "14px", color: "#666" }}>
-  Max stake: ${MAX_STAKE} (15× limit)
-</p>
-          type="number"
-          min="1"
-          value={stake}
-          onChange={(e) => setStake(e.target.value)}
-          style={{
-            display: "block",
-            width: "100%",
-            padding: "12px",
-            marginTop: "8px",
-            marginBottom: "16px",
-          }}
-        />
-      </label>
+      <input
+        type="number"
+        placeholder="Stake amount"
+        value={stake}
+        onChange={(e) => setStake(e.target.value)}
+      />
 
-      <button
-        onClick={createMatch}
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: "12px",
-          fontSize: "16px",
-        }}
-      >
+      <p style={{ fontSize: 14, color: "#666" }}>
+        Tier: <strong>{membership}</strong><br />
+        Daily limit: ${TIER_BASE[membership] * MULTIPLIER}<br />
+        Used today: ${dailyWagered}
+      </p>
+
+      <button onClick={createMatch} disabled={loading}>
         {loading ? "Creating..." : "Create Match"}
       </button>
     </main>
   );
-}
+  }
+
