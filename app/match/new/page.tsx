@@ -5,7 +5,14 @@ import { supabase } from "@/lib/supabaseClient";
 const BASE_WAGER = 10; // MVP default
 const MAX_MULTIPLIER = 15;
 const MAX_STAKE = BASE_WAGER * MAX_MULTIPLIER;
+const TIER_BASE: Record<string, number> = {
+  free: 0,
+  starter: 10,
+  pro: 25,
+  elite: 50,
+};
 
+const MULTIPLIER = 15;
 export default function NewMatchPage() {
   const [stake, setStake] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
