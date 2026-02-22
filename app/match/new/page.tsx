@@ -13,6 +13,9 @@ const TIER_BASE: Record<string, number> = {
 const MULTIPLIER = 15;
 
 export default function NewMatchPage() {
+  return <div>Match page works</div>;
+}
+
   const [userId, setUserId] = useState<string | null>(null);
   const [membership, setMembership] = useState("free");
   const [stake, setStake] = useState("");
